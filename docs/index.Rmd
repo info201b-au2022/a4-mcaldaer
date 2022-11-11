@@ -33,12 +33,16 @@ sum <- sum(test_query2(num))
 print(sum)
 ```
 
-## Introduction 
+## Section 1: Introduction 
 [TODO]
 
-## Data Summary 
+## Section 2: Data Summary 
 [TODO]
 
+## Section 3: Growth of the Prison Population 
+## Section 4: Growth of Prison Population by State
+## Section 5: <variable comparison that reveals potential patterns of inequality>
+## Section 6: <a map shows potential patterns of inequality that vary geographically>
 [TODO ... other sections ... See Canvas for details]
 
 _All the very best with your work!_

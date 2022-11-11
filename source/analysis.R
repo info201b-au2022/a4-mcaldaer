@@ -28,17 +28,32 @@ test_query2 <- function(num=6) {
 # Growth of the U.S. Prison Population
 # Your functions might go here ... <todo:  update comment>
 #----------------------------------------------------------------------------#
-# This function ... <todo:  update comment>
+# This function takes the incarceration dataset and calculates the total jail pop for each year 
 get_year_jail_pop <- function() {
-  # TODO: Implement this function 
-return()   
+  df <- incarceration %>% 
+    group_by(year) %>% 
+    summarise(yearly_jail_pop = sum(total_jail_pop, na.rm = T)) %>% 
+    select(yearly_jail_pop)
+return(df)   
 }
+
+yearly_pop <- get_year_jail_pop()
+View(yearly_pop)
 
 # This function ... <todo:  update comment>
 plot_jail_pop_for_us <- function()  {
-  # TODO: Implement this function 
-  return()   
+  yearly_pop <- get_year_jail_pop()
+  chart <- ggplot(yearly_pop) +
+    geom_histogram(mapping = aes(x = yearly_jail_pop))
+  return(chart)   
 } 
+
+p <- ggplot(yearly_pop) +
+  geom_histogram(mapping = aes(x = yearly_jail_pop))
+p
+
+test <- plot_jail_pop_for_us()
+
 
 ## Section 4  ---- 
 #----------------------------------------------------------------------------#
