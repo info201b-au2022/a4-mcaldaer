@@ -34,13 +34,27 @@ print(sum)
 ```
 
 ## Section 1: Introduction 
-[TODO]
+The aim of this data project is to reveal injustices within United States incarceration trends. To accomplish this goal, I will utilize data from the Vera Institute that contains demographic information and jail populations at the county-level for all 50 states. The United States is home to the largest incarcerated population in the world. 
 
 ## Section 2: Data Summary 
 [TODO]
 
 ## Section 3: Growth of the Prison Population 
+``` {r, include = FALSE}
+source("../source/analysis.R")
+```
+`r jail_pop_graph`
+
+This graph shows the growth of the total population of all jails in the United States between the years 1970 and 2018. One can note that the jail population was quite stable through the 1970's, hovering around 150,000 individuals. In the early 1980s, the U.S. jail population begins a steap and steady incline. The population continues to grow into the  2000s, reaching its peak of almost 800,000 individuals just before 2010. Since then, the U.S. jail population has decreased slightly, with the most recent counts standing at around 750,000 individuals. 
+
 ## Section 4: Growth of Prison Population by State
+``` {r, include = FALSE}
+source("../source/analysis.R")
+```
+`r jail_pop_state`
+
+This graph shows the growth of jail populations by state. This allows viewers to detect differences in the size of jail populations at the state-level. While the jail population of a particular state may be strongly related to overall population size, comparing states with similar overall population sizes helps to reveal differential patterns in incarceration rates. I've chosen to display both New York and Florida on this graph, which have very similar population sizes. However, Florida's jail population is almost double that of New York. On the other hand, two smaller states of almost equal size: New Hampshire and Maine have almost identical jail population sizes and growth trends. Washington and Michigan have high-to-mid range population sizes, and their jail populations appear to be roughly proportional.
+
 ## Section 5: <variable comparison that reveals potential patterns of inequality>
 ## Section 6: <a map shows potential patterns of inequality that vary geographically>
 [TODO ... other sections ... See Canvas for details]
