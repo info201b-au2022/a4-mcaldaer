@@ -109,7 +109,7 @@ states_with_no_jail_pop <- function(df) {
     pull(state)
   return(t)
 }
-
+look <- states_with_no_jail_pop()
 # Basic info ----
 #----------------------------------------------------------------------------#
 # Format some region information (currently, only the divisions)

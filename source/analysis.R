@@ -196,6 +196,17 @@ make_data <- incarceration %>% #do this by region instead
          black_white_ratio = black_percent/white_percent)
 View(make_data) 
 
+county_shape <- map_data("county")
+View(county_shape)
+p <- ggplot(county_shape) +
+  geom_polygon( 
+    mapping = aes(x = long, y= lat, group = group, color = black_white_ratio),
+    fill = "grey",
+    color = "black",
+    size  = .1, 
+  ) +
+  coord_map()
+p
 
 #----------------------------------------------------------------------------#
 
