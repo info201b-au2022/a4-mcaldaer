@@ -31,7 +31,103 @@ p
 
 # ----------------------------------------------------------------------------
 # Section 5 unused work:
+bw_data <- incarceration %>% 
+  filter(year == 2018) %>% 
+  select(state, county_name, division, total_pop_15to64, total_jail_pop, white_pop_15to64, white_jail_pop, black_pop_15to64, black_jail_pop) %>% 
+  mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, 
+         black_jail_percent = (black_jail_pop/total_jail_pop)*100,
+         white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, 
+         white_jail_percent = (white_jail_pop/total_jail_pop)*100) %>% 
+  filter(white_jail_percent <= 100, 
+         black_jail_percent <= 100) %>% 
+  select(state, county_name, division, black_pop_percent, black_jail_percent, white_pop_percent, white_jail_percent)
+View(bw_data)
 
+
+
+pop <- bw_data %>% 
+  select(black_pop_percent, white_pop_percent) %>% 
+  rename(Black = black_pop_percent, White = white_pop_percent) %>% 
+  gather(key = "race", value = "percent_of_pop", 1:2) %>% 
+  mutate(id = c(1:5420)) 
+View(pop)  
+
+pop2 <- bw_data %>% 
+  select(black_jail_percent, white_jail_percent) %>% 
+  rename(Black = black_jail_percent, White = white_jail_percent) %>% 
+  gather(key = "race", value = "percent_of_jail_pop", 1:2) %>% 
+  mutate(id = c(1:5420))
+View(pop2)
+
+bw <- left_join(pop, pop2, by = "id") %>% 
+  select(id, race.x, percent_of_pop, percent_of_jail_pop) %>% 
+  rename(race = race.x)
+View(bw)
+
+plot_new <- ggplot(bw) +
+  geom_point(mapping = aes(x = percent_of_pop, y = percent_of_jail_pop, color = race))
+plot_new  
+
+
+# select(black_pop_percent, white_pop_percent, black_jail_percent, white_jail_percent) %>% 
+#   gather(key="race", value="pop_percentage", 1:2) %>% 
+#   gather(key = "race", value = "jail_percentage", 1:2) %>% 
+#   select(race, pop_percentage, jail_percentage)
+# 
+
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+#Percentage B vs percent W in jail 
+make_data <- incarceration %>% #do this by region instead 
+  select(year, state, division, total_jail_pop, black_jail_pop, white_jail_pop) %>% 
+  group_by(year, division) %>% 
+  summarise(total_jail = sum(total_jail_pop, na.rm = T), 
+            black_jail = sum(black_jail_pop, na.rm = T), 
+            white_jail = sum(white_jail_pop, na.rm = T)) %>% 
+  filter(year >= 1985) %>% 
+  mutate(black_percent = (black_jail/total_jail)*100, 
+         white_percent = (white_jail/total_jail)*100,
+         black_white_ratio = black_percent/white_percent)
+View(make_data) 
+
+plot <- ggplot(make_data) +
+  geom_point(mapping = aes(x = white_percent, y = black_percent, 
+                           size = total_jail, color = division),
+             alpha = 0.3) +
+  labs(
+    title = "Comparing the Percentage of Black vs White Individuals in Jail, by Sub-Region", 
+    x = "Percent of Jail Pop. that is White", 
+    y = "Percent of Jail Pop. that is Black"
+  )
+plot
+
+plot <- ggplotly(plot)
+plot
+
+#Comparing total pop to total_jail pop
+data <- incarceration %>% #do this by region instead 
+  select(year, state, division, total_jail_pop, black_jail_pop, white_jail_pop) %>% 
+  group_by(year, division) %>% 
+  summarise(total_jail = sum(total_jail_pop, na.rm = T), 
+            black_jail = sum(black_jail_pop, na.rm = T), 
+            white_jail = sum(white_jail_pop, na.rm = T)) %>% 
+  filter(year == 2018)
+View(data)
+
+plot <- ggplot(data) +
+  geom_point(mapping = aes(x = total_pop, y = total_jail_pop, color = division)) +
+  ylim(0, 5000) +
+  xlim(0, 2.5*10^6)
+plot
+
+# ------------------------------------------------------------------------------
 #Black percent prison vs percent gen public 
 b_data <- incarceration %>% 
   filter(year == 2018) %>% 
