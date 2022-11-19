@@ -2,7 +2,7 @@ library(tidyverse)
 library(plotly)
 
 # The functions might be useful for A4
-source("../source/a4-helpers.R")
+#source("../source/a4-helpers.R")
 incarceration <- read.csv("~/Documents/info201/data/incarceration_trends.csv")
 View(incarceration)
 ## Test queries ----
@@ -27,13 +27,34 @@ test_query2()
 # Your functions and variables might go here ... <todo: update comment>
 #----------------------------------------------------------------------------#
 
-max_jail_pop <- incarceration %>% 
-  group_by(state) 
-  
+#avg percent in population vs average percent in 
 
-#largest_increase
+#what year had largest increase in 
+largest_increase <- incarceration %>% 
+  select(year, state, total_jail_pop) %>% 
+  group_by(year) %>% 
+  summarise(yearly_total = sum(total_jail_pop, na.rm = T)) %>% 
+  mutate(new_inmates = yearly_total - lag(yearly_total)) %>% 
+  filter(new_inmates == max(new_inmates, na.rm = T)) %>% 
+  pull(year)
+largest_increase
 
-#num_majority_black
+#what state had largest increase
+largest_state_increase <- incarceration %>% 
+  select(year, state, total_jail_pop) %>% 
+  group_by(state, year) %>% 
+  summarise(yearly_total = sum(total_jail_pop, na.rm = T)) %>% 
+  mutate(new_inmates = yearly_total - lag(yearly_total)) %>% 
+  arrange(-new_inmates) %>% 
+  filter(new_inmates == max(new_inmates, na.rm = T)) %>% 
+View(largest_state_increase)
+
+largest_state_increase <- largest_state_increase %>% 
+  filter(new_inmates == max(new_inmates, na.rm = T))
+View(largest_state_increase)
+
+
+#num_majority_black_jail_pop
 
 
 ## Section 3  ---- 
@@ -118,53 +139,72 @@ jail_pop_state
 #----------------------------------------------------------------------------#
 # <variable comparison that reveals potential patterns of inequality>
 # Your functions might go here ... <todo:  update comment>
-get_percentage_data <- function() {
-  bw_data <- incarceration %>% 
+get_percentage_data <- function() { #This function wrangles the data needed to make the plot in a few steps 
+  bw_data <- incarceration %>%  #first, 
     filter(year == 2018) %>% 
-    select(state, county_name, division, total_pop_15to64, total_jail_pop, white_pop_15to64, white_jail_pop, black_pop_15to64, black_jail_pop) %>% 
-    mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, 
-           black_jail_percent = (black_jail_pop/total_jail_pop)*100,
-           white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, 
-           white_jail_percent = (white_jail_pop/total_jail_pop)*100) %>% 
-    filter(white_jail_percent <= 100, 
-           black_jail_percent <= 100) %>% 
-    select(state, county_name, division, black_pop_percent, black_jail_percent, white_pop_percent, white_jail_percent)
-  return(bw_data)
+    select(state, county_name, total_pop_15to64, white_pop_15to64, black_pop_15to64, #select relevant rows
+           total_jail_pop, white_jail_pop, black_jail_pop) %>% 
+    mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, #calculate % of black ppl in general pop
+         white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, #calculate % of white ppl in general pop
+         black_jail_percent = (black_jail_pop/total_jail_pop)*100, #calculate % of black ppl in jail pop
+         white_jail_percent = (white_jail_pop/total_jail_pop)*100) %>% #calculate % of white ppl in jail pop
+    filter(white_jail_percent <= 100, #I noticed some rows had percentages <100, which indicates some kind of error, so I removed these
+         black_jail_percent <= 100) %>% 
+    select(state, county_name, black_pop_percent, white_pop_percent, black_jail_percent, white_jail_percent) 
+
+#In order to enable ggplot to assign color by race, I need to combine the black_pop_percent and white_pop_percent columns into a single col...
+  gen_pop <- bw_data %>% 
+    select(black_pop_percent, white_pop_percent) %>% 
+    rename(Black = black_pop_percent, White = white_pop_percent) %>% #changing the names here is what will allow ggplot to plot the data by racial group
+    gather(key = "race", value = "percent_of_pop", 1:2) %>% #put all pop_percent data into a single column w a new column that keeps track of the race
+    mutate(id = c(1:5420)) #need a numerical id to make sure the rows correspond properly during the final left_join()
+  
+#Now doing the same thing for the jail populations 
+ jail_pop <- bw_data %>% 
+    select(black_jail_percent, white_jail_percent) %>% 
+    rename(Black = black_jail_percent, White = white_jail_percent) %>% 
+    gather(key = "race", value = "percent_of_jail_pop", 1:2) %>% 
+    mutate(id = c(1:5420)) 
+  
+#Then recombine them so that population % and jail % are in two respective columns (instead of 4!) along with the new column that tracks race
+  bw <- left_join(gen_pop, jail_pop, by = "id") %>% 
+    select(id, race.x, percent_of_pop, percent_of_jail_pop) %>% 
+    rename(race = race.x)
+
+  return(bw)
 }
 
 tester <- get_percentage_data()
 View(tester)
 
+#This function plots the data wrangled above on a scatterplot
 plot_percentage_data <- function() {
-  percentage_plot <- ggplot(bw_data) +
-    geom_point(mapping = aes(x = white_pop_percent, y = white_jail_percent),
-               alpha = 0.8, 
-               color = "red") +
-    geom_smooth(mapping = aes(x = white_pop_percent, y = white_jail_percent), 
-                color = "red") +
-    geom_point(mapping = aes(x = black_pop_percent, y = black_jail_percent),
-               alpha = 0.8, 
-               color = "blue") +
-    geom_smooth(mapping = aes(x = black_pop_percent, y = black_jail_percent), 
-                color = "blue") +
-    geom_abline()
-  
-  percentage_plotly <- ggplotly(percentage_plot)
-  return(percentage_plotly)
+  label <- labs( #labels for the plot
+    title = "Comparing the Representation of Black and White Individuals in Jail
+    vs. the General Population", 
+    subtitle = "Data from 2018",
+    caption = "This plot compares the representation of Black and White individuals 
+    in the general population and jail populations. Each dot represents a singular U.S. county.", 
+    x = "Percent of General Population", 
+    y = "Percent of Jail Population"
+  )
+  data <- get_percentage_data() #call data wrangling fxn from above to get data 
+  plot <- ggplot(data) + #specifying plot parameters
+    geom_point(mapping = aes(x = percent_of_pop, y = percent_of_jail_pop, color = race),
+               alpha = 0.75) +
+    geom_smooth(mapping = aes(x = percent_of_pop, y = percent_of_jail_pop, color = race),
+    linetype = "bold", se=FALSE) +
+    scale_color_manual(values=c("#b3697a", "#69b3a2")) +
+    label +
+    geom_abline(color = "#468a7a", size = 1)
+    
+  plotly_fied <- ggplotly(plot)
+
+    return(plotly_fied)
 }
 
-test_plot <- plot_percentage_data()
-test_plot
-
-
-
-
-
-# scatterplot showing per capita prison pop
-# - population size x prison pop
-# 
-# percent white pop x percent black pop
-
+bw_percentage_plot <- plot_percentage_data()
+bw_percentage_plot
 
 #----------------------------------------------------------------------------#
 

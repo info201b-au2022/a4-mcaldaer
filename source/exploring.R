@@ -31,6 +31,20 @@ p
 
 # ----------------------------------------------------------------------------
 # Section 5 unused work:
+get_percentage_data <- function() {
+  data <- incarceration %>% 
+    filter(year == 2018) %>% 
+    select(state, county_name, division, total_pop_15to64, total_jail_pop, white_pop_15to64, white_jail_pop, black_pop_15to64, black_jail_pop) %>% 
+    mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, 
+           black_jail_percent = (black_jail_pop/total_jail_pop)*100,
+           white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, 
+           white_jail_percent = (white_jail_pop/total_jail_pop)*100) %>% 
+    filter(white_jail_percent <= 100, 
+           black_jail_percent <= 100) %>% 
+    select(state, county_name, division, black_pop_percent, black_jail_percent, white_pop_percent, white_jail_percent)
+  return(data)
+}
+
 bw_data <- incarceration %>% 
   filter(year == 2018) %>% 
   select(state, county_name, division, total_pop_15to64, total_jail_pop, white_pop_15to64, white_jail_pop, black_pop_15to64, black_jail_pop) %>% 
@@ -43,16 +57,14 @@ bw_data <- incarceration %>%
   select(state, county_name, division, black_pop_percent, black_jail_percent, white_pop_percent, white_jail_percent)
 View(bw_data)
 
-
-
-pop <- bw_data %>% 
+black_pop <- bw_data %>% 
   select(black_pop_percent, white_pop_percent) %>% 
   rename(Black = black_pop_percent, White = white_pop_percent) %>% 
   gather(key = "race", value = "percent_of_pop", 1:2) %>% 
   mutate(id = c(1:5420)) 
 View(pop)  
 
-pop2 <- bw_data %>% 
+white_pop <- bw_data %>% 
   select(black_jail_percent, white_jail_percent) %>% 
   rename(Black = black_jail_percent, White = white_jail_percent) %>% 
   gather(key = "race", value = "percent_of_jail_pop", 1:2) %>% 
@@ -76,7 +88,13 @@ plot_new
 # 
 
 
-
+# geom_point(mapping = aes(x = black_pop_percent, y = black_jail_percent),
+#            alpha = 0.75, 
+#            color = "#b3697a") +
+# geom_smooth(mapping = aes(x = black_pop_percent, y = black_jail_percent), 
+#             color = "#8a4655", se=FALSE) +
+# geom_abline(color = "#10201d") +
+# labels
 
 
 
