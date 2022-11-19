@@ -1,12 +1,12 @@
 ---
-title: "Your A4 Report Title (TODO: Revise title)"
-author: "Your Name"
-date: '2022-11-01'
+title: "A4: Assessing Inequalities in United States Incarceration Data"
+author: "Madeleine Clarke"
+date: '2022-11-21'
 output: html_document
 ---
 
 ```{r echo=FALSE, eval=TRUE, message=FALSE}
-source("../source/a4-helpers.R")
+#source("../source/a4-helpers.R")
 source("../source/analysis.R")
 ```
 
@@ -40,24 +40,46 @@ The aim of this data project is to reveal injustices within United States incarc
 [TODO]
 
 ## Section 3: Growth of the Prison Population 
-``` {r, include = FALSE}
+``` {r pop growth, include = FALSE}
 source("../source/analysis.R")
 ```
-`r jail_pop_graph`
+
+``` {r plotting bar chart, echo = FALSE}
+plot(jail_pop_graph)
+```
 
 This graph shows the growth of the total population of all jails in the United States between the years 1970 and 2018. One can note that the jail population was quite stable through the 1970's, hovering around 150,000 individuals. In the early 1980s, the U.S. jail population begins a steap and steady incline. The population continues to grow into the  2000s, reaching its peak of almost 800,000 individuals just before 2010. Since then, the U.S. jail population has decreased slightly, with the most recent counts standing at around 750,000 individuals. 
 
 ## Section 4: Growth of Prison Population by State
-``` {r, include = FALSE}
+``` {r state growth, include = FALSE}
 source("../source/analysis.R")
 ```
-`r jail_pop_state`
+
+``` {r plotting bar chart, echo = FALSE}
+plot(jail_pop_state)
+```
 
 This graph shows the growth of jail populations by state. This allows viewers to detect differences in the size of jail populations at the state-level. While the jail population of a particular state may be strongly related to overall population size, comparing states with similar overall population sizes helps to reveal differential patterns in incarceration rates. I've chosen to display both New York and Florida on this graph, which have very similar population sizes. However, Florida's jail population is almost double that of New York. On the other hand, two smaller states of almost equal size: New Hampshire and Maine have almost identical jail population sizes and growth trends. Washington and Michigan have high-to-mid range population sizes, and their jail populations appear to be roughly proportional.
 
-## Section 5: <variable comparison that reveals potential patterns of inequality>
+## Section 5: Comparing the Representation of Black and White Individuals in Jail vs. the General Population
+``` {r scatterplot, include = FALSE}
+source("../source/analysis.R")
+```
+
+# ``` {r plotting bar chart, echo = FALSE}
+# plot(bw_percentage_plot)
+# ```
+
+The above plot seeks to answer the question: *Are certain racial groups over-represented in jail populations compared to others?* To answer this question, I have created a scatterplot that compares the representation of Black and White people in jail versus their representation in the general population. Each dot represents population data from a singular U.S. county in 2018. For simplicity, only Black and White populations are displayed. The BLUE colored dots represent Black population percentages and the RED dots represent White population percentages. 
+
+In theory, for any given county the representation of a certain racial group in the general public should align with the representation of that racial group in jail. For example, if Black people make up ~7% of the general population in King County, WA then theoretically they should make up ~7% of the incarcerated population in King County. This means in a world with no racial inequalities in incarceration rates, the two colors of dots should generally cluster in the same way, and should be roughly along the x=y slope (see the diagonal line displayed on the graph). However, this is not what the data reveals. In fact, the data shows that Black individuals tend to cluster _above_ the diagonal line, and White individuals tend to cluster _below_ it. This means that on average, Black individuals are **over-represented** in jail populations across the U.S. compared to Whites. 
+
+**Note**: the breakdown of general population data by race was only available for ages 15-64. While this is a limitation of the dataset, I believe that 
+
 ## Section 6: <a map shows potential patterns of inequality that vary geographically>
-[TODO ... other sections ... See Canvas for details]
+``` {r map, include = FALSE}
+source("../source/analysis.R")
+```
 
 _All the very best with your work!_
 
