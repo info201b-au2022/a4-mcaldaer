@@ -46,11 +46,8 @@ largest_state_increase <- incarceration %>%
   summarise(yearly_total = sum(total_jail_pop, na.rm = T)) %>% 
   mutate(new_inmates = yearly_total - lag(yearly_total)) %>% 
   arrange(-new_inmates) %>% 
-  filter(new_inmates == max(new_inmates, na.rm = T)) %>% 
-View(largest_state_increase)
-
-largest_state_increase <- largest_state_increase %>% 
-  filter(new_inmates == max(new_inmates, na.rm = T))
+  head()
+  # filter(new_inmates == max(new_inmates, na.rm = T)) 
 View(largest_state_increase)
 
 
@@ -74,23 +71,24 @@ return(df)
 yearly_pop <- get_year_jail_pop()
 View(yearly_pop)
 
-# This function ... <todo:  update comment>
+# This function calls the above data wrangling function and creates a bar chart with yearly pop on the yaxis
+#and year on the x asis 
 plot_jail_pop_for_us <- function()  {
   yearly_pop <- get_year_jail_pop()
-  labels <- labs(
+  labels <- labs( #creating labels for the chart
     title = "Yearly Jail Population in the United States 1970-2018",
     x = "Year", 
     y = "Total Jail Population", 
     caption = "This graphic shows the growth of the total population of all jails in the United States from 1970-2018"
   )
-  chart <- ggplot(yearly_pop) +
+  chart <- ggplot(yearly_pop) + #specifying parameters for the ggplot fxn
     geom_col(mapping = aes(x = year, y= yearly_jail_pop)) +
     scale_y_continuous(labels = scales::comma)+
     labels
   return(chart)   
 } 
 
-jail_pop_graph <- plot_jail_pop_for_us()
+jail_pop_graph <- plot_jail_pop_for_us() #here is the graph!
 jail_pop_graph
 
 
@@ -99,31 +97,32 @@ jail_pop_graph
 # Growth of Prison Population by State 
 # Your functions might go here ... <todo:  update comment>
 
-get_jail_pop_by_states <- function(states) {
+get_jail_pop_by_states <- function(states) { #this fxn creates a df with yearly jail population totals by state
   df <- incarceration %>% 
-    filter(state %in% states) %>% 
+    filter(state %in% states) %>% #this filters the incarceration df for states that match the input vector
     group_by(state, year) %>% 
     summarise(yearly_jail_pop =  sum(total_jail_pop, na.rm = T))
   return(df)
 }
 
-state_test <- c("NY", "FL", "WA", "MI", "ME", "NH")
-# test <- get_jail_pop_by_states(state_test)
-# View(test)
+state_test <- c("NY", "FL", "WA", "MI", "ME", "NH") #this is a vector that can be put into the above fxn
+test <- get_jail_pop_by_states(state_test) #testing the fxn 
+View(test)
 
-plot_jail_pop_by_states <- function(states) {
+plot_jail_pop_by_states <- function(states) { #this fxn calls the above data wrangling fxn, and then creates 
+  #a line chart showing the growth of jail populations by state
   state_pop <- get_jail_pop_by_states(states)
-  labels <- labels <- labs(
+  labels <- labels <- labs( #labels for the chart 
     title = "Yearly Jail Population in the United States by State - 1970-2018",
     x = "Year", 
     y = "Total Jail Population", 
     caption = "This graphic shows the growth of the total population of jails in selected states by year, from 1970-2018"
   ) 
-  chart <- ggplot(state_pop) +
+  chart <- ggplot(state_pop) + #specifying parameters for ggplot line chart 
   geom_line(mapping = aes(x = year, 
                            y = yearly_jail_pop, 
-                           color = state)) +
-    scale_y_continuous(labels = scales::comma) +
+                           color = state)) + #one line for each state 
+    scale_y_continuous(labels = scales::comma) + #making sure pop size is show in standard notation  
     labels
   return(chart) 
   
@@ -138,11 +137,11 @@ jail_pop_state
 ## Section 5  ---- 
 #----------------------------------------------------------------------------#
 # <variable comparison that reveals potential patterns of inequality>
-# Your functions might go here ... <todo:  update comment>
+# Data Wrangling Function 
 get_percentage_data <- function() { #This function wrangles the data needed to make the plot in a few steps 
-  bw_data <- incarceration %>%  #first, 
-    filter(year == 2018) %>% 
-    select(state, county_name, total_pop_15to64, white_pop_15to64, black_pop_15to64, #select relevant rows
+  bw_data <- incarceration %>%  
+    filter(year == 2018) %>% #first, select only data from 2018 
+    select(state, county_name, total_pop_15to64, white_pop_15to64, black_pop_15to64, #select relevant columns
            total_jail_pop, white_jail_pop, black_jail_pop) %>% 
     mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, #calculate % of black ppl in general pop
          white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, #calculate % of white ppl in general pop
@@ -182,23 +181,23 @@ plot_percentage_data <- function() {
   label <- labs( #labels for the plot
     title = "Comparing the Representation of Black and White Individuals in Jail
     vs. the General Population", 
+    x = "Percent of General Population", 
+    y = "Percent of Jail Population", 
     subtitle = "Data from 2018",
     caption = "This plot compares the representation of Black and White individuals 
-    in the general population and jail populations. Each dot represents a singular U.S. county.", 
-    x = "Percent of General Population", 
-    y = "Percent of Jail Population"
+    in the general population and jail populations. Each dot represents a singular U.S. county."
   )
   data <- get_percentage_data() #call data wrangling fxn from above to get data 
   plot <- ggplot(data) + #specifying plot parameters
     geom_point(mapping = aes(x = percent_of_pop, y = percent_of_jail_pop, color = race),
                alpha = 0.75) +
     geom_smooth(mapping = aes(x = percent_of_pop, y = percent_of_jail_pop, color = race),
-    linetype = "bold", se=FALSE) +
-    scale_color_manual(values=c("#b3697a", "#69b3a2")) +
+    linetype = "bold", se=FALSE) + #adding linear regression line to emphasize trends
+    scale_color_manual(values=c("#b3697a", "#69b3a2")) + #picking a nice color scheme :) 
     label +
-    geom_abline(color = "#468a7a", size = 1)
+    geom_abline(color = "#468a7a", size = 1) #adding an x=y line to show diversion from expected result
     
-  plotly_fied <- ggplotly(plot)
+  plotly_fied <- ggplotly(plot) #making it interactive 
 
     return(plotly_fied)
 }
