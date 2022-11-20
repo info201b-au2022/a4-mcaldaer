@@ -177,3 +177,39 @@ plot <- ggplot(w_data) +
                            color = division),
              alpha = 0.8) 
 plot
+
+# Section 6: Scratchwork
+# ------------------------------------------------------------------------------
+bw_data <- incarceration %>%  
+  filter(year == 2018) %>% #first, select only data from 2018 
+  select(state, county_name, total_pop_15to64, white_pop_15to64, black_pop_15to64, #select relevant columns
+         total_jail_pop, white_jail_pop, black_jail_pop) %>% 
+  mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, #calculate % of black ppl in general pop
+         white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, #calculate % of white ppl in general pop
+         black_jail_percent = (black_jail_pop/total_jail_pop)*100, #calculate % of black ppl in jail pop
+         white_jail_percent = (white_jail_pop/total_jail_pop)*100) %>% #calculate % of white ppl in jail pop
+  filter(white_jail_percent <= 100, #I noticed some rows had percentages <100, which indicates some kind of error, so I removed these
+         black_jail_percent <= 100) %>% 
+  select(state, county_name, black_pop_percent, white_pop_percent, black_jail_percent, white_jail_percent) 
+
+#In order to enable ggplot to assign color by race, I need to combine the black_pop_percent and white_pop_percent columns into a single col...
+gen_pop <- bw_data %>% 
+  select(black_pop_percent, white_pop_percent) %>% 
+  rename(Black = black_pop_percent, White = white_pop_percent) %>% #changing the names here is what will allow ggplot to plot the data by racial group
+  gather(key = "race", value = "percent_of_pop", 1:2) %>% #put all pop_percent data into a single column w a new column that keeps track of the race
+  mutate(id = c(1:5420)) #need a numerical id to make sure the rows correspond properly during the final left_join()
+
+#Now doing the same thing for the jail populations 
+jail_pop <- bw_data %>% 
+  select(black_jail_percent, white_jail_percent) %>% 
+  rename(Black = black_jail_percent, White = white_jail_percent) %>% 
+  gather(key = "race", value = "percent_of_jail_pop", 1:2) %>% 
+  mutate(id = c(1:5420)) 
+
+#Then recombine them so that population % and jail % are in two respective columns (instead of 4!) along with the new column that tracks race
+bw_ratio <- left_join(gen_pop, jail_pop, by = "id") %>% 
+  select(id, race.x, percent_of_pop, percent_of_jail_pop) %>% 
+  rename(race = race.x) %>% 
+  mutate(ratio = percent_of_jail_pop/percent_of_pop)
+View(bw_ratio)
+

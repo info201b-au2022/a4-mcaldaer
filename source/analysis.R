@@ -136,7 +136,7 @@ jail_pop_state
 
 ## Section 5  ---- 
 #----------------------------------------------------------------------------#
-# <variable comparison that reveals potential patterns of inequality>
+# Comparing the Representation of Black and White Individuals in Jail vs. the General Population
 # Data Wrangling Function 
 get_percentage_data <- function() { #This function wrangles the data needed to make the plot in a few steps 
   bw_data <- incarceration %>%  
@@ -168,7 +168,7 @@ get_percentage_data <- function() { #This function wrangles the data needed to m
 #Then recombine them so that population % and jail % are in two respective columns (instead of 4!) along with the new column that tracks race
   bw <- left_join(gen_pop, jail_pop, by = "id") %>% 
     select(id, race.x, percent_of_pop, percent_of_jail_pop) %>% 
-    rename(race = race.x)
+    rename(Race = race.x)
 
   return(bw)
 }
@@ -183,7 +183,6 @@ plot_percentage_data <- function() {
     vs. the General Population", 
     x = "Percent of General Population", 
     y = "Percent of Jail Population", 
-    subtitle = "Data from 2018",
     caption = "This plot compares the representation of Black and White individuals 
     in the general population and jail populations. Each dot represents a singular U.S. county."
   )
@@ -196,7 +195,7 @@ plot_percentage_data <- function() {
     scale_color_manual(values=c("#b3697a", "#69b3a2")) + #picking a nice color scheme :) 
     label +
     geom_abline(color = "#468a7a", size = 1) #adding an x=y line to show diversion from expected result
-    
+  
   plotly_fied <- ggplotly(plot) #making it interactive 
 
     return(plotly_fied)
@@ -214,56 +213,94 @@ bw_percentage_plot
 
 # per capita prison pop map
 # - Which areas inprison the most people (adjusted for population size)
-# 
-# ratio (black/white)
 
-make_data <- incarceration %>% #do this by region instead 
-  select(year, state, county_name, total_jail_pop, black_jail_pop, white_jail_pop) %>%
-  filter(year == 2018) %>% 
-  group_by(county_name) %>% 
-  summarise(total_jail = sum(total_jail_pop, na.rm = T), 
-            black_jail = sum(black_jail_pop, na.rm = T), 
-            white_jail = sum(white_jail_pop, na.rm = T)) %>% 
-  mutate(black_percent = (black_jail/total_jail)*100, 
-         white_percent = (white_jail/total_jail)*100,
-         black_white_ratio = black_percent/white_percent) %>% 
-  rename(county = county_name)
-make_data <- gsub("County", "", make_data$county)
-View(make_data) 
+
+# Map #1: ratio (black/white)
+#-----------------------------------------------------------------------------
 
 county_shape <- map_data("county") %>% 
   rename(state = region, county = subregion)
-View(county_shape)  
-View(county_shape)
-p <- ggplot(county_shape) +
+View(county_shape) 
+
+map_data <- incarceration %>% 
+  filter(year == 2018) %>% 
+  rename(county = county_name) %>% 
+  select(state, county, total_pop, total_pop_15to64, black_pop_15to64, white_pop_15to64, 
+         total_jail_pop, black_jail_pop, white_jail_pop) %>% 
+  mutate(black_pop = (black_pop_15to64/total_pop_15to64)*100, 
+         black_jail = (black_jail_pop/total_jail_pop)*100, 
+         black_ratio = black_jail/black_pop, 
+         
+         white_pop = (white_pop_15to64/total_pop_15to64)*100, 
+         white_jail = (white_jail_pop/total_jail_pop)*100, 
+         white_ratio = white_jail/white_pop) %>% 
+  
+  select(state, county, black_pop, black_jail, black_ratio, 
+         white_pop, white_jail, white_ratio)
+View(map_data)
+
+county <- tolower(gsub(" County", "", map_data$county))
+
+map_data$county <- county 
+
+View(map_data)
+
+trying <- left_join(county_shape, map_data, by = "county") %>% 
+  select(long, lat, group, county, state.y, 
+         black_pop, black_jail, black_ratio, 
+         white_pop, white_jail, white_ratio) %>% 
+  filter(black_jail <= 100, 
+         white_jail <= 100) %>% 
+  rename(state = state.y)
+View(trying)
+
+
+p <- ggplot(trying) +
   geom_polygon( 
-    mapping = aes(x = long, y= lat, group = group, color = black_white_ratio),
-    fill = "grey",
-    color = "black",
+    mapping = aes(x = long, y= lat, group = group, fill = log10(black_ratio/white_ratio)),
+    # fill = "grey",
+    # color = "black",
     size  = .1, 
   ) +
   coord_map()
+
 p
 
+p <- ggplotly(p)
+p
+
+q <- p <- ggplot(trying) +
+  geom_polygon( 
+    mapping = aes(x = long, y= lat, group = group, fill = (white_jail)),
+    # fill = "grey",
+    # color = "black",
+    size  = .1, 
+  ) +
+  coord_map()
+q
+
 #----------------------------------------------------------------------------#
+# Map #2: Most represented incarcerated racial group by county 
+map2_data <- incarceration %>% 
+  filter(year == 2018) %>% 
+  select(state, county_name, division, total_jail_pop, 
+         aapi_jail_pop, black_jail_pop, latinx_jail_pop, native_jail_pop, 
+         white_jail_pop, other_race_jail_pop) %>% 
+  mutate(aapi_percent = (aapi_jail_pop/total_jail_pop)*100, 
+         black_percent = (black_jail_pop/total_jail_pop)*100, 
+         latinx_percent = (latinx_jail_pop/total_jail_pop)*100, 
+         native_percent = (native_jail_pop/total_jail_pop)*100, 
+         white_percent = (white_jail_pop/total_jail_pop)*100, 
+         other_percent = (other_race_jail_pop/total_jail_pop)*100,
+         total_percent = aapi_percent + black_percent + latinx_percent + native_percent + white_percent + other_percent) %>% 
+  select(state, county_name, division, aapi_percent, black_percent, latinx_percent, 
+         native_percent, white_percent, other_percent)
+View(map2_data)
+
+trial <- map2_data %>% 
+  gather(key = "race", value = "percent_of_jail", 4:9) %>% 
+  group_by(county_name) %>% 
+  summarise(percent_of_jail = which.max(percent_of_jail))
+View(trial)
 
 ## Load data frame ---- 
-
-play <- function(choices) {
-  data <- incarceration %>% 
-    group_by(state, year) %>% 
-    summarise(yearly_total = sum(total_jail_pop, na.rm = T)) %>% 
-    head
-  # filter(state %in% choices)
-  
-  chart <- ggplot(data) + 
-    geom_point(mapping = aes(x = year, y= yearly_total, color = state), 
-               shape = 21, 
-               alpha = 0.5) +
-    geom_line(mapping = aes(x = year, y = yearly_total, color = state))
-  
-  return(chart)
-}
-
-test <- play(c("WA", "OR", "CA", "MA", "ME", "NH", 'PA', 'AZ', "TN"))
-test
