@@ -4,21 +4,25 @@ author: "Madeleine Clarke"
 date: '2022-11-21'
 output: html_document
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+```
 
-```{r echo=FALSE, eval=TRUE, message=FALSE}
+```{r include = FALSE}
 #source("../source/a4-helpers.R")
 source("../source/analysis.R")
 ```
 
 ## Abstract 
-This website explores inequalities in incarceration patterns within the United States. Analyses have been conducted using incarceration data collected by the Vera Institute, an advocacy and research group focused on transforming American criminal legal and immigration systems. The Vera Institute is particularly interested in ending mass incarceration and reforming our systems to be more just and fair for people of color and other marginalized groups. As such, the follow report will focus on revealing patterns of racial inequality and over-incarceration within the United States. 
+This website explores inequalities in incarceration patterns within the United States. Analyses have been conducted using incarceration data collected by the Vera Institute, an advocacy and research group focused on transforming American criminal legal and immigration systems. The Vera Institute is particularly interested in ending mass incarceration and reforming our systems to be more just and fair for people of color and other marginalized groups. As such, the following report will focus on revealing patterns of racial inequality and over-incarceration within the United States. 
 
 ## Section 1: Introduction 
 The aim of this data project is to reveal injustices within United States incarceration trends. To accomplish this goal, I will utilize data from the Vera Institute that contains demographic information and jail population data at the county-level for all 50 states. More specifically, I aim to reveal patterns of racial inequality in incarceration rates, as well as highlight differences in incarceration patterns between states. 
 
-The United States is home to the largest incarcerated population in the world. The over-policing and incarceration of people of color has been [well documented](https://www.pewresearch.org/fact-tank/2020/06/03/10-things-we-know-about-race-and-policing-in-the-u-s/), and has become a major topic in recent years as part of the resurgence of the Black Lives Matter movement. As it stands, the U.S. criminal justice system targets already vulnerable individuals and communities, and works to [perpetuate poverty and racial disparites](https://www.vera.org/ending-mass-incarceration/criminalization-racial-disparities) in wealth and health. Addressing inequalities within the criminal legal system in the United States is necessary to 
+The United States is home to the largest incarcerated population in the world. The over-policing and incarceration of people of color has been [well documented](https://www.pewresearch.org/fact-tank/2020/06/03/10-things-we-know-about-race-and-policing-in-the-u-s/), and has become a major topic in recent years as part of the resurgence of the Black Lives Matter movement. As it stands, the U.S. criminal justice system targets already vulnerable individuals and communities, and works to [perpetuate poverty and racial disparites](https://www.vera.org/ending-mass-incarceration/criminalization-racial-disparities) in wealth and health. Addressing inequalities within the criminal legal system in the United States is necessary for creating a more just world. 
 
-I want to acknowledge that the real-world data I am using for my analysis represents the lives of hundreds of thousands of individuals and their communities who have been affected by incarceration. I want to honor the hardships and emotions that were involved in becoming a data point in the dataset that I am utilizing. As such, I will ground my work in the values described below, as well as acknowledging those (both direct and indirect) who may be implicated in my analysis. 
+I want to acknowledge that the real-world data I am using for my analysis represents the lives of hundreds of thousands of individuals, plus their families and their communities who have been affected by incarceration. I want to honor the hardships and emotions that were involved in becoming a data point in the dataset that I am utilizing. As such, I will ground my work in the values described below, as well as acknowledging those who may be implicated (both directly and indirectly) in my analysis. 
 
 * **Stakeholders:** 
   - Direct: families and communities that are affected by mass-incarceration, police systems, criminal and legal systems, jails and prisons.
@@ -27,7 +31,16 @@ I want to acknowledge that the real-world data I am using for my analysis repres
 
 
 ## Section 2: Data Summary 
-[TODO]
+``` {r data summary, include = FALSE}
+source("../source/analysis.R")
+```
+In this section I will summarize the key findings for each of the remaining 4 sections of my report. In ***Section 3*** I was tasked with creating a bar chart that shows the total jail population of the United States by year, from 1970-2018. Through my analysis, I found that the largest _increase_ in the incarcerated population was in **`r largest_increase`**. Additionally, I found that the incarcerated population reached its peak in **`r year_largest_pop`**. 
+
+In ***Section 4*** I examined growth trends of the incarcerated population by state. In my graph, I highlighted differences in state-level incarceration rates in Florida, New York, New Hampshire, Maine, Washington and Michigan. I conducted additional analyses that found that the largest incarcerated population was located in **`r largest_pop_state`** in the year **`r largest_pop_year`**, with a total of **`r largest_pop`** individuals in jail. 
+
+In Sections 5 & 6 I began to reveal patterns of inequality in the incarceration data, focusing primarily on differences between incarceration rates of Black and White Americans. In ***Section 5***, I chose to compare the representation of both Black and White Americans in jails versus their representation in the general population. I achieved this by creating a ratio that calculated [percent in jail/percent in general public]. I found that the maximum ratio for Black individuals occurred in _`r max_black_ratio`, KS_ and showed that the population of incarcerated Blacks was **118x** greater than the population of free Blacks. In contrast, the maximum ratio for White individuals occured in **`r max_white_ratio`, AK** where the population of incarcerated Whites was only **11x** greater than free Whites. 
+
+Finally, in ***Section 6*** I created a map that showed the relative risk of being incarcerated for Black and White Americans at the county-level. Through my analysis I found that the average relative risk across all US counties was **`r avg_risk_ratio`**. This value means that across the entire US, Black Americans were at 1.2x the risk of being incarcerated compared to White Americans. You will be able to assess differences in the relative risk of incarceration in more detail in Section 6. 
 
 ## Section 3: Growth of the Prison Population
 ``` {r pop growth, include = FALSE}
@@ -38,7 +51,7 @@ source("../source/analysis.R")
 plot(jail_pop_graph)
 ```
 
-This graph shows the growth of the total population of all jails in the United States between the years 1970 and 2018. One can note that the jail population was quite stable through the 1970's, hovering around 150,000 individuals. In the early 1980s, the U.S. jail population begins a steap and steady incline. The population continues to grow into the  2000s, reaching its peak of almost 800,000 individuals just before 2010. Since then, the U.S. jail population has decreased slightly, with the most recent counts standing at around 750,000 individuals.
+This graph shows the growth of the total population of all jails in the United States between the years 1970 and 2018. One can note that the jail population was quite stable through the 1970's, hovering around 150,000 individuals. In the early 1980s, the U.S. jail population begins a steap and steady incline. The population continues to grow into the  2000s, reaching its peak of almost 800,000 individuals in `r year_largest_pop`. Since then, the U.S. jail population has decreased slightly, with the most recent counts standing at around 750,000 individuals.
 
 ## Section 4: Growth of Prison Population by State
 ``` {r state growth, include = FALSE}
@@ -56,9 +69,10 @@ This graph shows the growth of jail populations by state. This allows viewers to
 source("../source/analysis.R")
 ```
 
-# ``` {r plot scatterplot, echo = FALSE}
-# plot(bw_percentage_plot)
-# ```
+``` {r plot scatterplot, include = FALSE}
+bw_percentage_plot
+```
+`r bw_percentage_plot`
 
 The above plot seeks to answer the question: *Are certain racial groups over-represented in jail populations compared to others?* To answer this question, I have created a scatterplot that compares the representation of Black and White people in jail versus their representation in the general population. Each dot represents population data from a singular U.S. county in 2018. For simplicity, only Black and White populations are displayed. The BLUE colored dots represent Black population percentages and the RED dots represent White population percentages.
 
@@ -66,12 +80,12 @@ In theory, for any given county the representation of a certain racial group in 
 
 **Note**: the breakdown of general population data by race was only available for ages 15-64. While this is a limitation of the dataset, I believe that
 
-<!-- ## Section 6: <a map shows potential patterns of inequality that vary geographically> -->
-<!-- ``` {r map, include = FALSE} -->
-<!-- source("../source/analysis.R") -->
-<!-- ``` -->
+## Section 6: <a map shows potential patterns of inequality that vary geographically>
+``` {r map, include = FALSE}
+source("../source/analysis.R")
+```
 
-<!-- This [source](https://redbird.shinyapps.io/police-bias-map/) helped me with my conceptual model -->
+This [source](https://redbird.shinyapps.io/police-bias-map/) helped me with my conceptual model.
 
 
 _All the very best with your work!_
