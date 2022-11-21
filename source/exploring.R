@@ -213,3 +213,79 @@ bw_ratio <- left_join(gen_pop, jail_pop, by = "id") %>%
   mutate(ratio = percent_of_jail_pop/percent_of_pop)
 View(bw_ratio)
 
+#-------------------------------------------------------------------------------
+#Map trial #1
+county_shape <- map_data("county") %>% 
+  rename(state = region, county = subregion)
+View(county_shape) 
+
+map_data <- incarceration %>% 
+  filter(year == 2018) %>% 
+  rename(county = county_name) %>% 
+  select(state, county, total_pop, total_pop_15to64, black_pop_15to64, white_pop_15to64, 
+         total_jail_pop, black_jail_pop, white_jail_pop) %>% 
+  mutate(black_pop = (black_pop_15to64/total_pop_15to64)*100, 
+         black_jail = (black_jail_pop/total_jail_pop)*100, 
+         black_ratio = black_jail/black_pop, 
+         
+         white_pop = (white_pop_15to64/total_pop_15to64)*100, 
+         white_jail = (white_jail_pop/total_jail_pop)*100, 
+         white_ratio = white_jail/white_pop, 
+         
+         bw_ratio = (black_ratio/white_ratio)) %>% 
+  filter(white_jail <= 100, 
+         black_jail <= 100) %>% 
+  select(state, county, bw_ratio, black_pop, black_jail, black_ratio, 
+         white_pop, white_jail, white_ratio)
+View(map_data)
+
+county <- tolower(gsub(" County", "", map_data$county))
+
+map_data$county <- county 
+
+View(map_data)
+
+join_bw <- left_join(county_shape, map_data, by = "county") %>% 
+  select(long, lat, group, county, state.y, 
+         bw_ratio,
+         black_pop, black_jail, black_ratio, 
+         white_pop, white_jail, white_ratio) %>% 
+  rename(state = state.y)
+View(join_bw)
+
+
+p <- ggplot(join_bw) +
+  geom_polygon( 
+    mapping = aes(x = long, y= lat, group = group, fill = bw_ratio),
+    # fill = "grey",
+    # color = "black",
+    size  = .1
+  ) +
+  coord_map()
+
+p
+
+#-----------------------------
+# Map #2: Most represented incarcerated racial group by county 
+map2_data <- incarceration %>% 
+  filter(year == 2018) %>% 
+  select(state, county_name, division, total_jail_pop, 
+         aapi_jail_pop, black_jail_pop, latinx_jail_pop, native_jail_pop, 
+         white_jail_pop, other_race_jail_pop) %>% 
+  mutate(aapi_percent = (aapi_jail_pop/total_jail_pop)*100, 
+         black_percent = (black_jail_pop/total_jail_pop)*100, 
+         latinx_percent = (latinx_jail_pop/total_jail_pop)*100, 
+         native_percent = (native_jail_pop/total_jail_pop)*100, 
+         white_percent = (white_jail_pop/total_jail_pop)*100, 
+         other_percent = (other_race_jail_pop/total_jail_pop)*100,
+         total_percent = aapi_percent + black_percent + latinx_percent + native_percent + white_percent + other_percent) %>% 
+  select(state, county_name, division, aapi_percent, black_percent, latinx_percent, 
+         native_percent, white_percent, other_percent)
+View(map2_data)
+
+trial <- map2_data %>% 
+  gather(key = "race", value = "percent_of_jail", 4:9) %>% 
+  group_by(county_name) %>% 
+  summarise(percent_of_jail = which.max(percent_of_jail))
+View(trial)
+
