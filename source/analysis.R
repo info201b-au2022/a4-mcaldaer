@@ -1,6 +1,7 @@
 library(tidyverse)
 library(plotly)
 library(leaflet)
+library(knitr)
 
 # The functions might be useful for A4
 #source("../source/a4-helpers.R")
@@ -14,7 +15,7 @@ View(incarceration)
 
 #avg percent in population vs average percent in 
 
-#Section 2: variable
+#Section 3: variable
 #what year had largest increase in jail population
 largest_increase <- incarceration %>% 
   select(year, state, total_jail_pop) %>% 
@@ -25,15 +26,69 @@ largest_increase <- incarceration %>%
   pull(year)
 largest_increase
 
-#Section 3: variable
-#what state has largest incarcerated pop
-
-
 #Section 4: variable
-#avg ratio for black vs white? Use BW dataframe
+#what state has largest incarcerated pop
+state_largest <- incarceration %>% 
+  group_by(state, year) %>% 
+  summarise(yearly_total = sum(total_jail_pop, na.rm = T)) %>% 
+  filter(yearly_total > 0) %>% 
+  filter(yearly_total == max(yearly_total)) %>% 
+  arrange(-yearly_total) 
+View(state_largest)
 
-#num_majority_black_jail_pop
+state_largest_table <- kable(state_largest)
 
+largest_pop_state <- state_largest[1,] %>% 
+  pull(state)
+largest_pop_state
+
+largest_pop <- state_largest_pop[1,] %>% 
+  pull(yearly_total)
+largest_pop
+
+largest_pop_year <- state_largest_pop[1,] %>% 
+  pull(year)
+largest_pop_year 
+
+#Section 5: 
+bw_disparities <- incarceration %>%  
+  filter(year == 2018) %>% #first, select only data from 2018 
+  select(state, county_name, total_pop_15to64, white_pop_15to64, black_pop_15to64, #select relevant columns
+         total_jail_pop, white_jail_pop, black_jail_pop) %>% 
+  mutate(black_pop_percent = (black_pop_15to64/total_pop_15to64)*100, #calculate % of black ppl in general pop
+         white_pop_percent = (white_pop_15to64/total_pop_15to64)*100, #calculate % of white ppl in general pop
+         black_jail_percent = (black_jail_pop/total_jail_pop)*100, #calculate % of black ppl in jail pop
+         white_jail_percent = (white_jail_pop/total_jail_pop)*100) %>% #calculate % of white ppl in jail pop
+  filter(white_jail_percent <= 100, #I noticed some rows had percentages <100, which indicates some kind of error, so I removed these outliers
+         black_jail_percent <= 100) %>% 
+  select(state, county_name, black_pop_percent, black_jail_percent, white_pop_percent, white_jail_percent) %>% 
+  mutate(black_ratio = black_jail_percent/black_pop_percent, 
+         white_ratio = white_jail_percent/white_pop_percent)
+View(bw_disparities)
+
+max_white_ratio <- bw_disparities %>% 
+  filter(white_ratio == max(white_ratio, na.rm = T))
+max_white_ratio
+
+max_black_ratio <- bw_disparities %>% 
+  filter(black_ratio == max(black_ratio, na.rm = T))
+max_black_ratio
+
+#Section 6: variable
+#avg ratio for black vs white? 
+avg_risk_ratio <- incarceration %>% 
+  filter(year == 2018) %>% 
+  rename(county = county_name) %>% 
+  select(county, state, 
+         black_jail_pop, black_pop_15to64, 
+         white_jail_pop, white_pop_15to64) %>% 
+  mutate(black_risk = black_jail_pop/black_pop_15to64, 
+         white_risk = white_jail_pop/white_pop_15to64, 
+         relative_risk = log(black_risk/white_risk)) %>% 
+  select(county, state, black_risk, white_risk, relative_risk) %>% 
+  summarise(avg_rr = median(relative_risk, na.rm = T)) %>% 
+  pull(avg_rr)
+avg_risk_ratio
 
 
 ## Section 3  ---- 
