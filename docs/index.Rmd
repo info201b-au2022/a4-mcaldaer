@@ -83,10 +83,12 @@ In theory, for any given county the representation of a certain racial group in 
 ## Section 6: <a map shows potential patterns of inequality that vary geographically>
 ``` {r map, include = FALSE}
 source("../source/analysis.R")
+ggplot_map
 ```
+`r ggplot_map`
 
-This [source](https://redbird.shinyapps.io/police-bias-map/) helped me with my conceptual model.
+The above map shows the relative risk of being incarcerated for Black and White Americans in most counties comprising the United States. Relative risk is a measure that compares the likelihood of a certain outcome (in this case, being incarcerated) across two distinct groups (in this case, Black and White Americans). Relative risk also adjusts for differences in population size. In the context of this project, the relative risk values I've calculated serve to highlight differences in likelihood of being incarcerated for Black individuals vs White individuals. Because the relative risk values I calculated were not normally distributed, I have transformed them by taking the natural log of the values. As a result, a relative risk value >0 for a particular county means that Black individuals are more likely to be incarcerated than Whites in that county. A relative risk value <0 for a particular county means that Whites are more likely to be incarcerated than Black individuals in that area. The average relative risk value across all counties in the U.S. was found to be `r avg_risk_ratio`, meaning that on average, Black people are more likely to be incarcerated compared to Whites in the United States. 
 
+This [source](https://redbird.shinyapps.io/police-bias-map/) helped me with my conceptual model when creating this map.
 
-_All the very best with your work!_
 

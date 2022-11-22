@@ -1,7 +1,10 @@
+install.packages("ggplot2")
 library(tidyverse)
 library(plotly)
 library(leaflet)
 library(knitr)
+# install.packages("usmap")
+library(usmap)
 
 # The functions might be useful for A4
 #source("../source/a4-helpers.R")
@@ -10,10 +13,8 @@ View(incarceration)
 
 ## Section 2  ---- 
 #----------------------------------------------------------------------------#
-# Your functions and variables might go here ... <todo: update comment>
+# Here I calculate a summary variable for each of my sections
 #----------------------------------------------------------------------------#
-
-#avg percent in population vs average percent in 
 
 #Section 3: variable
 #what year had largest increase in jail population
@@ -25,6 +26,14 @@ largest_increase <- incarceration %>%
   filter(new_inmates == max(new_inmates, na.rm = T)) %>% 
   pull(year)
 largest_increase
+
+year_largest_pop <- incarceration %>% 
+  select(year, state, total_jail_pop) %>% 
+  group_by(year) %>% 
+  summarise(yearly_total = sum(total_jail_pop, na.rm = T)) %>% 
+  filter(yearly_total == max(yearly_total, na.rm = T)) %>% 
+  pull(year)
+year_largest_pop
 
 #Section 4: variable
 #what state has largest incarcerated pop
@@ -42,11 +51,11 @@ largest_pop_state <- state_largest[1,] %>%
   pull(state)
 largest_pop_state
 
-largest_pop <- state_largest_pop[1,] %>% 
+largest_pop <- state_largest[1,] %>% 
   pull(yearly_total)
 largest_pop
 
-largest_pop_year <- state_largest_pop[1,] %>% 
+largest_pop_year <- state_largest[1,] %>% 
   pull(year)
 largest_pop_year 
 
@@ -67,11 +76,13 @@ bw_disparities <- incarceration %>%
 View(bw_disparities)
 
 max_white_ratio <- bw_disparities %>% 
-  filter(white_ratio == max(white_ratio, na.rm = T))
+  filter(white_ratio == max(white_ratio, na.rm = T)) %>% 
+  pull(county_name)
 max_white_ratio
 
 max_black_ratio <- bw_disparities %>% 
-  filter(black_ratio == max(black_ratio, na.rm = T))
+  filter(black_ratio == max(black_ratio, na.rm = T)) %>% 
+  pull(county_name)
 max_black_ratio
 
 #Section 6: variable
@@ -230,7 +241,7 @@ plot_percentage_data <- function() {
     linetype = "bold", se=FALSE) + #adding linear regression line to emphasize trends
     scale_color_manual(values=c("#b3697a", "#69b3a2")) + #picking a nice color scheme :) 
     label +
-    geom_abline(color = "#468a7a", size = 1) #adding an x=y line to show diversion from expected result
+    geom_abline(color = "#468a7a", linewidth = 1) #adding an x=y line to show diversion from expected result
   
   plotly_fied <- ggplotly(plot) #making it interactive 
 
@@ -244,7 +255,7 @@ bw_percentage_plot
 
 ## Section 6  ---- 
 #----------------------------------------------------------------------------#
-# <a map shows potential patterns of inequality that vary geographically>
+# Comparing the Risk of Incarceration for Black and White Individuals at the 
 # Your functions might go here ... <todo:  update comment>
 
 #-------------------------------------------------------------------------------
@@ -278,21 +289,22 @@ risk_map <- left_join(county_shape, risk_ratio, by = "county") %>%
 View(risk_map)
 
 
-p <- ggplot(risk_map) +
+ggplot_map <- ggplot(risk_map) +
   geom_polygon( 
     mapping = aes(x = long, y= lat, group = group, fill = relative_risk),
     size  = .1
   ) +
   coord_map()
+ggplot_map
 
-p
+# m <- leaflet() %>% 
+#   addTiles() %>% 
+#   setView(lng = -96, lat = 37.8, zoom = 4) %>% 
+#   addPolygons(data = county_shape, lng = county_shape$long, lat = county_shape$lat, stroke = FALSE, 
+#               smoothFactor = 0.2)
+# 
+# m
+# 
 
-
-m <- leaflet() %>% 
-  addTiles() %>% 
-  setView(lng = -96, lat = 37.8, zoom = 4) %>% 
-  addPolylines(lng = county_shape$long, lat = county_shape$lat)
-
-m
 
 ## Load data frame ---- 
