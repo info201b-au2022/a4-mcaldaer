@@ -40,7 +40,7 @@ In ***Section 4*** I examined growth trends of the incarcerated population by st
 
 In Sections 5 & 6 I began to reveal patterns of inequality in the incarceration data, focusing primarily on differences between incarceration rates of Black and White Americans. In ***Section 5***, I chose to compare the representation of both Black and White Americans in jails versus their representation in the general population. I achieved this by creating a ratio that calculated [percent in jail/percent in general public]. I found that the maximum ratio for Black individuals occurred in _`r max_black_ratio`, KS_ and showed that the population of incarcerated Blacks was **118x** greater than the population of free Blacks. In contrast, the maximum ratio for White individuals occured in **`r max_white_ratio`, AK** where the population of incarcerated Whites was only **11x** greater than free Whites. 
 
-Finally, in ***Section 6*** I created a map that showed the relative risk of being incarcerated for Black and White Americans at the county-level. Through my analysis I found that the average relative risk across all US counties was **`r avg_risk_ratio`**. This value means that across the entire US, Black Americans were at 1.2x the risk of being incarcerated compared to White Americans. You will be able to assess differences in the relative risk of incarceration in more detail in Section 6. 
+Finally, in ***Section 6*** I created a map that showed the relative risk of being incarcerated for Black and White Americans at the county-level. Through my analysis I found that the median relative risk across all US counties was **`r avg_risk_ratio`**. This value means that when looking at the US as a whole, Black Americans were at around 3.4x the risk of being incarcerated compared to White Americans. You will be able to assess differences in the relative risk of incarceration in more detail in Section 6. 
 
 ## Section 3: Growth of the Prison Population
 ``` {r pop growth, include = FALSE}
@@ -80,15 +80,18 @@ In theory, for any given county the representation of a certain racial group in 
 
 **Note**: the breakdown of general population data by race was only available for ages 15-64. While this is a limitation of the dataset, I believe that
 
-## Section 6: <a map shows potential patterns of inequality that vary geographically>
+## Section 6: Relative Risk of Incarceration in the United States
 ``` {r map, include = FALSE}
 source("../source/analysis.R")
-ggplot_map
 ```
-`r ggplot_map`
 
-The above map shows the relative risk of being incarcerated for Black and White Americans in most counties comprising the United States. Relative risk is a measure that compares the likelihood of a certain outcome (in this case, being incarcerated) across two distinct groups (in this case, Black and White Americans). Relative risk also adjusts for differences in population size. In the context of this project, the relative risk values I've calculated serve to highlight differences in likelihood of being incarcerated for Black individuals vs White individuals. Because the relative risk values I calculated were not normally distributed, I have transformed them by taking the natural log of the values. As a result, a relative risk value >0 for a particular county means that Black individuals are more likely to be incarcerated than Whites in that county. A relative risk value <0 for a particular county means that Whites are more likely to be incarcerated than Black individuals in that area. The average relative risk value across all counties in the U.S. was found to be `r avg_risk_ratio`, meaning that on average, Black people are more likely to be incarcerated compared to Whites in the United States. 
+``` {r plotting map, include = FALSE}
+map_ly
+```
+`r map_ly`
 
-This [source](https://redbird.shinyapps.io/police-bias-map/) helped me with my conceptual model when creating this map.
+The above map shows the relative risk of being incarcerated for Black and White Americans in most states comprising the United States. Some states (CT, DE, HI, RI, & VT) were removed because they did not provide the racial breakdown of their jail populations. 
 
+Relative risk is a measure that compares the likelihood of a certain outcome (in this case, being incarcerated) across two distinct groups (in this case, Black and White Americans). Relative risk also adjusts for differences in population size. In the context of this project, the relative risk values I've calculated serve to highlight differences in likelihood of being incarcerated for Black individuals vs White individuals. Because the relative risk values I calculated were not normally distributed, I have transformed them by taking the natural log of the values. As a result, a relative risk value >0 for a particular state means that Black individuals are more likely to be incarcerated than Whites in that state. A relative risk value <0 means that Whites are more likely to be incarcerated than Black individuals in that state. More specifically, a relative risk value of 3, means Black individuals are `r exp(3)` times more likely to be incarcerated compared to Whites in the same state. Interestingly, my analysis showed that all 50 states had RR values >0. This means that across the entirety of the United States (albeit with differences in magnitude and across other sub-levels like county), Black individuals are at a higher risk of being incarcerated compared to Whites. 
 
+This [source](https://redbird.shinyapps.io/police-bias-map/) aided me in developing the conceptual model for my map. 
