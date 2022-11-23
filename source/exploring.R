@@ -289,3 +289,62 @@ trial <- map2_data %>%
   summarise(percent_of_jail = which.max(percent_of_jail))
 View(trial)
 
+# Map 3 
+# ------------------------------------------------------------------------------
+get_county_shape <- function() {
+  county_shape <- map_data("county") %>% 
+    rename(state = region, county = subregion)
+  return(county_shape)
+}
+
+
+try_county <- get_county_shape() 
+View(try_county)
+
+risk_ratio <- incarceration %>% 
+  filter(year == 2018) %>% 
+  rename(county = county_name) %>% 
+  select(fips, county, state, 
+         black_jail_pop, black_pop_15to64, 
+         white_jail_pop, white_pop_15to64) %>% 
+  mutate(black_risk = black_jail_pop/black_pop_15to64, 
+         white_risk = white_jail_pop/white_pop_15to64, 
+         relative_risk = log(black_risk/white_risk)) %>% 
+  select(fips, county, state, black_risk, white_risk, relative_risk)
+
+county <- tolower(gsub(" County", "", risk_ratio$county))
+
+risk_ratio$county <- county 
+
+View(risk_ratio)
+
+risk_map <- left_join(county_shape, risk_ratio, by = "county") %>% 
+  select(group, long, lat, county, state.y,
+         black_risk, white_risk, relative_risk) %>% 
+  rename(state = state.y)
+View(risk_map)
+
+ggplot_map <- ggplot(risk_map) +
+  geom_polygon( 
+    mapping = aes(x = long, y= lat, group = group, fill = relative_risk),
+    size  = .1
+  ) +
+  coord_map()
+ggplot_map
+
+county_map <- plot_usmap("counties", data = risk_ratio, values = "relative_risk") +
+  scale_fill_continuous(
+    low = "white", high = "blue", name = "Relative Risk") + 
+  theme(legend.position = "right")
+
+county_map <- plot_usmap("counties", data = risk_ratio, values = "relative_risk") +
+  scale_fill_stepsn(breaks= 1:4, limits = c(-3.5,6), labels = seq(.25, 1, .25),
+                    colors=c("blue","green","yellow","red"),
+                    guide = guide_colorsteps(even.steps = FALSE))
+
+
+county_map
+
+county_maply <- ggplotly(county_map)
+county_maply
+

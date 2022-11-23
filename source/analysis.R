@@ -1,4 +1,4 @@
-install.packages("ggplot2")
+# install.packages("ggplot2")
 library(tidyverse)
 library(plotly)
 library(leaflet)
@@ -43,7 +43,7 @@ state_largest <- incarceration %>%
   filter(yearly_total > 0) %>% 
   filter(yearly_total == max(yearly_total)) %>% 
   arrange(-yearly_total) 
-View(state_largest)
+# View(state_largest)
 
 state_largest_table <- kable(state_largest)
 
@@ -95,7 +95,7 @@ avg_risk_ratio <- incarceration %>%
          white_jail_pop, white_pop_15to64) %>% 
   mutate(black_risk = black_jail_pop/black_pop_15to64, 
          white_risk = white_jail_pop/white_pop_15to64, 
-         relative_risk = log(black_risk/white_risk)) %>% 
+         relative_risk = (black_risk/white_risk)) %>% 
   select(county, state, black_risk, white_risk, relative_risk) %>% 
   summarise(avg_rr = median(relative_risk, na.rm = T)) %>% 
   pull(avg_rr)
@@ -154,8 +154,8 @@ get_jail_pop_by_states <- function(states) { #this fxn creates a df with yearly 
 }
 
 state_vector <- c("NY", "FL", "WA", "MI", "ME", "NH") #this is a vector that can be put into the above fxn
-test <- get_jail_pop_by_states(state_vector) #testing the fxn wrangles the data properly 
-View(test)
+# test <- get_jail_pop_by_states(state_vector) #testing the fxn wrangles the data properly 
+# View(test)
 
 plot_jail_pop_by_states <- function(states) { #this fxn calls the above data wrangling fxn, and then creates 
   #a line chart showing the growth of jail populations by the states selected in "state_vector"
@@ -220,19 +220,17 @@ get_percentage_data <- function() { #This function wrangles the data needed to m
   return(bw)
 }
 
-tester <- get_percentage_data()
-View(tester)
+# tester <- get_percentage_data()
+# View(tester)
 
 #This function plots the data wrangled above on a scatterplot
 plot_percentage_data <- function() {
   label <- labs( #labels for the plot
-    title = "Comparing the Representation of Black and White Individuals in Jail
-    vs. the General Population", 
+    title = "Comparing the Representation of Racial Groups in Jail vs. the General Population", 
     x = "Percent of General Population", 
-    y = "Percent of Jail Population", 
-    caption = "This plot compares the representation of Black and White individuals 
-    in the general population and jail populations. Each dot represents a singular U.S. county."
+    y = "Percent of Jail Population"
   )
+  
   data <- get_percentage_data() #call data wrangling fxn from above to get data 
   plot <- ggplot(data) + #specifying scatterplot parameters
     geom_point(mapping = aes(x = percent_of_pop, y = percent_of_jail_pop, color = Race),
@@ -243,15 +241,20 @@ plot_percentage_data <- function() {
     label +
     geom_abline(color = "#468a7a", linewidth = 1) #adding an x=y line to show diversion from expected result
   
-  plotly_fied <- ggplotly(plot) #making it interactive 
-
+  plotly_fied <- ggplotly(plot) %>% #making it interactive 
+    layout(title = list(text = paste0('Comparing the Representation of Racial Groups in Jail vs. the General Population (2018)',
+                                      '<br>',
+                                      '<sup>',
+                                      'Figure 3: Comparing the percentage of Black and White individuals in jail vs. the general population. Each dot represents a singular U.S. county. Hover over a dot to see population breakdowns. ' , '</sup>')))
+  
+  
     return(plotly_fied)
 }
 
 bw_percentage_plot <- plot_percentage_data()
 bw_percentage_plot
 
-#----------------------------------------------------------------------------#
+ #----------------------------------------------------------------------------#
 
 ## Section 6  ---- 
 #----------------------------------------------------------------------------#
@@ -260,51 +263,49 @@ bw_percentage_plot
 
 #-------------------------------------------------------------------------------
 # Map #3: Risk Ratio 
+get_map_data <- function() {
+  data <- incarceration %>% 
+    filter(year == 2018) %>% 
+    select(fips, state, 
+           black_jail_pop, black_pop_15to64, 
+           white_jail_pop, white_pop_15to64) %>% 
+    group_by(state) %>%
+    summarise(black_jail = sum(black_jail_pop, na.rm = T, finite = T), 
+              white_jail = sum(white_jail_pop, na.rm = T, finite = T), 
+              black_pop = sum(black_pop_15to64, na.rm = T, finite = T), 
+              white_pop = sum(white_pop_15to64, na.rm = T, finite = T), 
+              black_risk = black_jail/black_pop, 
+              white_risk = white_jail/white_pop, 
+              Relative_Risk = log(black_risk/white_risk)) %>% 
+    filter(! state %in% c("VT", "HI", "RI", "DE", "CT"))
+  return(data)
+}
 
-county_shape <- map_data("county") %>% 
-  rename(state = region, county = subregion)
-View(county_shape) 
+# work <- get_map_data()
+# View(work)
 
-risk_ratio <- incarceration %>% 
-  filter(year == 2018) %>% 
-  rename(county = county_name) %>% 
-  select(county, state, 
-         black_jail_pop, black_pop_15to64, 
-         white_jail_pop, white_pop_15to64) %>% 
-  mutate(black_risk = black_jail_pop/black_pop_15to64, 
-         white_risk = white_jail_pop/white_pop_15to64, 
-         relative_risk = log(black_risk/white_risk)) %>% 
-  select(county, state, black_risk, white_risk, relative_risk)
+make_map <- function() {
+  state_rr <- get_map_data()
+  usmap <- plot_usmap(data = state_rr, values = "Relative_Risk") +
+    scale_fill_continuous(
+      low = "white", high = "#8a4655", name = "Relative Risk") + 
+    theme(legend.position = "right") +
+    labs(
+      title = "Comparing the Relative Risk of Incarceration for Black and White Americans (2018)", 
+      subtitle = "Data collected by the Vera Institute")
 
-county <- tolower(gsub(" County", "", risk_ratio$county))
+  usmap_ly <- ggplotly(usmap) %>% 
+    layout(title = list(text = paste0('Comparing the Relative Risk of Incarceration for Black and White Americans (2018)',
+                                                               '<br>',
+                                                               '<sup>',
+                                                               'Figure 4: The above map shows the relative risk of being incarcerated for Black and White Americans in most states comprising the United States. All states had a risk ratio greater than zero', '</sup>')))
+  
+  
+  return(usmap_ly)
+  
+}
 
-risk_ratio$county <- county 
-
-View(risk_ratio)
-
-risk_map <- left_join(county_shape, risk_ratio, by = "county") %>% 
-  select(group, long, lat, county, state.y,
-         black_risk, white_risk, relative_risk) %>% 
-  rename(state = state.y)
-View(risk_map)
-
-
-ggplot_map <- ggplot(risk_map) +
-  geom_polygon( 
-    mapping = aes(x = long, y= lat, group = group, fill = relative_risk),
-    size  = .1
-  ) +
-  coord_map()
-ggplot_map
-
-# m <- leaflet() %>% 
-#   addTiles() %>% 
-#   setView(lng = -96, lat = 37.8, zoom = 4) %>% 
-#   addPolygons(data = county_shape, lng = county_shape$long, lat = county_shape$lat, stroke = FALSE, 
-#               smoothFactor = 0.2)
-# 
-# m
-# 
-
+map_ly <- make_map()
+map_ly
 
 ## Load data frame ---- 
